@@ -35,14 +35,14 @@ I created the **LoggerRequestMiddleware** class for the middleware implementatio
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var logInfo = $"Request Method: {context.Request.Method} Path: {context.Request.Path} ";
+            var logInfo = $"Request Method: {context.Request.Method}, Path: {context.Request.Path}";
 
             if (context.Request.QueryString.HasValue)
                 logInfo += $"{context.Request.QueryString}";
 
             var bodyContent = await GetBodyContentAsync(context.Request);
             if (!string.IsNullOrEmpty(bodyContent))
-                logInfo += $"Body: {bodyContent}";
+                logInfo += $", Body: {bodyContent}";
 
             Log.Logger.Information(logInfo);
 
