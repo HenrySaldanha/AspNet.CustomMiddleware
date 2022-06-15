@@ -1,8 +1,8 @@
-This repository has the objective of presenting the creation and configuration of a Custom Middleware.
+This repository has the objective of presenting the creation and configuration of a custom Middleware.
 
 ## Settings
 
-In my **Startup.cs** class I added the following code snippets:
+In my **Startup** class I added the following code snippets:
    
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -11,7 +11,7 @@ In my **Startup.cs** class I added the following code snippets:
 	    ...
     }
     
-I created a class called **MiddlewareExtensions** so that I can have a single file with the configuration of many middleware in the builder.
+I created a class called **MiddlewareExtensions**, so that I can have a single file with the configuration of many middleware in the builder.
 
     public static class MiddlewareExtensions
     {
