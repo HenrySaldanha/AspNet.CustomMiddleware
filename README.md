@@ -1,65 +1,73 @@
-This repository has the objective of presenting examples of data structure, search algorithms, sorting algorithms, and their respective complexities in the worst case. 
+This repository has the objective of presenting the creation and configuration of a Custom Middleware.
 
-To apply the concepts of the topics above, I created a project called "problems", in this project I solve problems of the [leetcode](https://leetcode.com/) platform. The explanation of each problem is in the solution itself. You can find them by accessing the root of the solution and `/src/problems`
+## Settings
 
-For most of the code I also developed the unit tests, you can find them by accessing the root of the solution and `/test`.
+In my **Startup.cs** class I added the following code snippets:
+   
 
-This repository is under construction so some algorithms mentioned in the tables may be missing from the solution
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+	    app.UseLoggerMiddleware();
+	    ...
+    }
+    
+I created a class called **MiddlewareExtensions** so that I can have a single file with the configuration of many middleware in the builder.
+
+    public static class MiddlewareExtensions
+    {
+        public static IApplicationBuilder UseLoggerMiddleware(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<LoggerRequestMiddleware>();
+        }
+    }
+
+## Middleware class implementation
+I created the **LoggerRequestMiddleware** class for the middleware implementation. The purpose of this middleware is to log some attributes of an API request.
+
+    public class LoggerRequestMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public LoggerRequestMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            var logInfo = $"Request Method: {context.Request.Method} Path: {context.Request.Path} ";
+
+            if (context.Request.QueryString.HasValue)
+                logInfo += $"{context.Request.QueryString}";
+
+            var bodyContent = await GetBodyContentAsync(context.Request);
+            if (!string.IsNullOrEmpty(bodyContent))
+                logInfo += $"Body: {bodyContent}";
+
+            Log.Logger.Information(logInfo);
+
+            await _next(context);
+        }
+
+        private async Task<string> GetBodyContentAsync(HttpRequest request)
+        {
+            if (request.ContentLength == 0)
+                return null;
+
+            request.EnableBuffering();
+            var buffer = new byte[Convert.ToInt32(request.ContentLength)];
+            await request.Body.ReadAsync(buffer, 0, buffer.Length);
+            return Encoding.UTF8.GetString(buffer).RemoveLineBreak();
+        }
+    }
 
 
-## Data Structures
 
-For data structure, we only look at worst-case time complexity.
-
-| Data Structures                                                                                                                                                 | Insertion | Remove       | Search | Access |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------ | ------ | ------ |
-| [Array](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/Array/SimpleArray.cs)                                         | O(n)      | O(n)         | O(n)   | O(1)   |
-| [Doubly-Linked List](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/List/DoublyLinkedList/DoublyLinkedList.cs)       | O(1)      | O(1) or O(n) | O(n)   | O(n)   |
-| [Circular-Linked List](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/List/CircularLinkedList/CircularLinkedList.cs) | O(1)      | O(1) or O(n) | O(n)   | O(n)   |
-| [Singly-Linked List](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/List/SinglyLinkedList/SinglyLinkedList.cs) | O(n)      | O(n) | O(n)   | O(n)   |
-| [Hash Map](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/HashMap/HashMap.cs) | O(n)      | O(n) | O(n)   | O(n)   |
-| [Min Heap](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/Heap/MinHeap/MinHeap.cs)  |      O(log(n))     |      O(log(n))        |    O(n)    |        |
-| [AVL](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/Tree/AVL/AVL.cs) | O(log(n))      | O(log(n)) | O(log(n))   |    |
-| [Binary Search Tree](https://github.com/HenrySaldanha/algorithms/blob/main/src/DataStructure/Tree/BinarySearchTree/BinarySearchTree.cs) | O(n)      | O(n) | O(n)   |    |
-| B-Tree   |           |              |        |        |
-| B+ Tree  |           |              |        |        |
-| Red-Black Tree |           |              |        |        |
-| 2-3 Tree  |           |              |        |        |
-
-## Sorting Algorithms
-
-| Algorithm      | Best | Average | Wrost | 
-| -------------- | ---- | ------- | ----- |
-| [Quick Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/QuickSort/QuickSort.cs)     |   O(n*log(n))    |    O(n*log(n))     |    O(n^2)   | 
-| [Mergesort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/MergeSort/MergeSort.cs)     |   O(n*log(n))    |    O(n*log(n))     |    O(n*log(n))   | 
-| [Heapsort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/HeapSort/HeapSort.cs)      |  O(n*log(n))    |   O(n*log(n))      |   O(n*log(n))    |       |
-| [Bubble Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/BubbleSort/BubbleSort.cs) | O(n)      | O(n^2) | O(n^2)   |
-| [Insertion Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/InsertionSort/InsertionSort.cs) |  O(n)    |   O(n^2)      |    O(n^2)    |  
-| [Selection Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/SelectionSort/SelectionSort.cs) | O(n^2)   |   O(n^2)      |    O(n^2)    |  
-| [Radix Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/RadixSort/RadixSort.cs) | O(n+k)   |   O(n+k)      |    O(n+k)    |  
-| [Counting Sort](https://github.com/HenrySaldanha/algorithms/blob/main/src/Sorting/CountingSort/CountingSort.cs) | O(n+k)   |   O(n+k)      |    O(n+k)    |  
-
-## Search Algorithms
-
-| Algorithm            | Best | Average | Wrost |
-| -------------------- | ---- | ------- | ----- |
-| [Linear(Array)](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/Linear/Linear.cs)      |   O(1)   |    O(n)     |   O(n)    |
-| [Binary Search](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/BinarySearch/BinarySearch.cs)        |    O(1)  |    O(Log(n))     |    O(Log(n))    |
-| [Binary Search Tree](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/BinarySearchTree/BinarySearchTree.cs)  |   O(log(n))   |    O(n)     |   O(n)      |
-| [Breadth-First Search](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/BreadthFirstSearch/BreadthFirstSearch.cs) |    |     O(V+E)     |      |
-| [Depth-First Search](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/DepthFirstSearch/DepthFirstSearch.cs)   |        |     O(V+E)     |      |
-| A*                   |      |         |       |
-| Predictive Search    |      |         |       |
-| Interpolation Search |      |         |
-| [Fibonacci Search](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/FibonacciSearch/FibonacciSearch.cs)      |   O(1)   |    O(log(n))     |   O(log(n))    |
-| Kruskal's Algorithm  |      |         |       |
-| [Prim's Algorithm](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/Prim/PrimAlgorithm.cs)   |    O(v^2)    |    O(v^2)     |   O(v^2)    |
-| [Dijkstra's Algorithm](https://github.com/HenrySaldanha/algorithms/blob/main/src/Search/Dijkstra/DijkstraAlgorithm.cs)   |    O(v^2)    |    O(v^2)     |   O(v^2)    |
 
 
 ## This project was built with
-* [xUnit](https://xunit.net/)
 * [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [Serilog](https://serilog.net/)
 * ~~coffee, pizza and late nights~~
 
 ## My contacts
