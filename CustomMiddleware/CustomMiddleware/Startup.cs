@@ -1,4 +1,6 @@
 ﻿using CustomMiddleware.Extensions;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Converters;
 using Serilog;
@@ -18,6 +20,8 @@ namespace CustomMiddleware
         {
             services.AddControllers()
                 .AddNewtonsoftJson(config => { config.SerializerSettings.Converters.Add(new StringEnumConverter()); });
+
+            services.AddHealthChecks();
 
             services.AddApiVersioning(options =>
             {
@@ -56,7 +60,15 @@ namespace CustomMiddleware
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints => 
+            { 
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+            });
         }
     }
 }
