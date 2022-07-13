@@ -1,4 +1,12 @@
-This repository has the objective of presenting the creation and configuration of a Custom Middleware.
+This repository has the objective of presenting the creation and configuration of a custom Middleware.
+
+## Docker use
+
+To build and run this application with docker you can use these commands in the same folder as the **Dockerfile** file :
+
+    docker build --rm -t myapp .
+
+    docker run --rm -p 5000:5000 myapp
 
 ## Settings
 
